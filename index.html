@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="My Tracker" />
+<meta name="theme-color" content="#ffffff" />
+<title>My Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #eeece8;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #a8a8a3;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --r-md: 8px; --r-lg: 12px;
+    --success-bg: #eaf3de; --success-text: #3b6d11;
+    --warn-bg: #faeeda; --warn-text: #854f0b;
+    --danger-bg: #fcebeb; --danger-text: #a32d2d;
+    --info-bg: #e6f1fb; --info-text: #185fa5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #2a2a27; --bg3: #333330;
+      --text: #f0ede8; --text2: #9a9a94; --text3: #5a5a56;
+      --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.22);
+      --success-bg: #173404; --success-text: #c0dd97;
+      --warn-bg: #412402; --warn-text: #fac775;
+      --danger-bg: #501313; --danger-text: #f09595;
+      --info-bg: #042c53; --info-text: #b5d4f4;
+    }
+  }
+
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; padding-bottom: 80px; }
+
+  .topbar { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 14px 16px 10px; position: sticky; top: 0; z-index: 100; }
+  .topbar h1 { font-size: 18px; font-weight: 500; }
+  .topbar-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  .content { padding: 12px 16px; max-width: 480px; margin: 0 auto; }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 0.5px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+  .nav-btn { flex: 1; padding: 10px 4px 8px; border: none; background: none; color: var(--text3); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-family: inherit; }
+  .nav-btn i { font-size: 22px; }
+  .nav-btn.active { color: #185fa5; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .card { background: var(--bg); border-radius: var(--r-lg); padding: 14px 16px; margin-bottom: 12px; border: 0.5px solid var(--border); }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 12px; }
+
+  .quick-box { background: var(--bg); border-radius: var(--r-lg); padding: 16px; margin-bottom: 12px; border: 0.5px solid var(--border); }
+  .quick-label { font-size: 12px; color: var(--text3); margin-bottom: 10px; }
+
+  .big-btn { width: 100%; padding: 18px; font-size: 17px; font-weight: 500; background: var(--info-bg); border: none; border-radius: var(--r-lg); cursor: pointer; color: var(--info-text); display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; font-family: inherit; -webkit-appearance: none; }
+  .big-btn:active { transform: scale(0.97); }
+
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  input[type="time"], input[type="number"], input[type="datetime-local"], select, textarea {
+    background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--r-md);
+    padding: 10px 12px; font-size: 15px; color: var(--text); font-family: inherit;
+    -webkit-appearance: none; appearance: none; outline: none; width: 100%;
+  }
+  input[type="time"] { width: auto; min-width: 110px; }
+  textarea { min-height: 80px; resize: vertical; }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+  .int-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .int-btn { padding: 8px 14px; border-radius: var(--r-md); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; font-size: 13px; font-family: inherit; }
+  .int-btn.sel { background: var(--info-bg); color: var(--info-text); border-color: var(--info-text); }
+
+  .add-btn { padding: 10px 18px; border-radius: var(--r-md); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); cursor: pointer; font-size: 14px; font-weight: 500; font-family: inherit; white-space: nowrap; }
+
+  .detail-toggle { font-size: 13px; color: var(--info-text); cursor: pointer; padding: 4px 0; display: inline-block; margin-bottom: 6px; }
+  .detail-form { display: none; }
+  .detail-form.open { display: block; }
+  .form-row { margin-bottom: 12px; }
+  .form-label { font-size: 12px; color: var(--text2); margin-bottom: 5px; display: block; }
+
+  .save-btn { width: 100%; padding: 13px; background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--r-md); cursor: pointer; font-size: 15px; color: var(--text); font-weight: 500; font-family: inherit; }
+
+  .today-item { padding: 10px 0; border-bottom: 0.5px solid var(--border); display: flex; align-items: flex-start; gap: 8px; }
+  .today-item:last-child { border-bottom: none; }
+  .item-time { font-size: 17px; font-weight: 500; }
+  .item-num { font-size: 12px; color: var(--text3); }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; margin-left: 6px; }
+  .b-low { background: var(--success-bg); color: var(--success-text); }
+  .b-medium { background: var(--warn-bg); color: var(--warn-text); }
+  .b-high { background: var(--danger-bg); color: var(--danger-text); }
+  .item-note { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .del-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 4px; flex-shrink: 0; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .stat { background: var(--bg); border-radius: var(--r-lg); padding: 14px; border: 0.5px solid var(--border); }
+  .stat-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .stat-val { font-size: 26px; font-weight: 500; }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin: 6px 0; }
+  .hm-cell { aspect-ratio: 1; border-radius: 3px; background: var(--bg2); }
+  .hm-cell.h1 { background: #b5d4f4; }
+  .hm-cell.h2 { background: #378add; }
+  .hm-cell.h3 { background: #185fa5; }
+  .hm-cell.h4 { background: #042c53; }
+  .hm-legend { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--text3); margin-top: 6px; }
+  .hm-sq { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
+
+  .insight { background: var(--bg2); border-radius: var(--r-md); padding: 14px; font-size: 14px; color: var(--text2); line-height: 1.7; }
+  .insight strong { color: var(--text); }
+  .warn-text-d { color: var(--danger-text); }
+  .warn-text-w { color: var(--warn-text); }
+
+  .day-header { font-size: 12px; color: var(--text3); padding: 10px 0 4px; font-weight: 500; }
+
+  .health-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+  .health-item:last-child { border-bottom: none; }
+  .health-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+  .health-title { font-size: 15px; font-weight: 500; }
+  .health-desc { font-size: 13px; color: var(--text2); margin-top: 3px; line-height: 1.6; }
+  .tag { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 20px; margin: 4px 4px 0 0; }
+
+  .flash-ok { animation: flashok 0.5s ease; }
+  @keyframes flashok { 0%{transform:scale(1)} 50%{transform:scale(0.95);background:#b5d4f4} 100%{transform:scale(1)} }
+
+  .empty { font-size: 14px; color: var(--text3); text-align: center; padding: 24px 0; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>My Tracker 🔒</h1>
+  <div class="topbar-sub">ข้อมูลเก็บในเครื่องเท่านั้น ปลอดภัย 100%</div>
+</div>
+
+<!-- LOG PAGE -->
+<div id="page-log" class="page active content">
+  <div class="quick-box">
+    <div class="quick-label"><i class="ti ti-bolt"></i> บันทึกเร็ว</div>
+    <button class="big-btn" id="now-btn" onclick="logNow()">
+      <i class="ti ti-check"></i> เสร็จแล้ว 1 ครั้ง — ตอนนี้เลย
+    </button>
+    <div class="quick-label" style="margin-bottom:8px;">หรือระบุเวลาเอง</div>
+    <div class="row">
+      <input type="time" id="q-time" />
+      <button class="add-btn" onclick="logQuickTime()"><i class="ti ti-plus"></i> เพิ่ม</button>
+    </div>
+    <div class="int-group" id="q-int-group">
+      <button class="int-btn sel" onclick="setQInt('low',this)">ปานกลาง</button>
+      <button class="int-btn" onclick="setQInt('medium',this)">มาก</button>
+      <button class="int-btn" onclick="setQInt('high',this)">มากมาก</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-calendar-today"></i> วันนี้ (<span id="today-count">0</span> ครั้ง)</div>
+    <div id="today-list"><p class="empty">ยังไม่มีรายการ<br>กดปุ่มด้านบนได้เลย</p></div>
+  </div>
+
+  <span class="detail-toggle" onclick="toggleDetail()"><i class="ti ti-adjustments-alt"></i> บันทึกแบบละเอียด</span>
+  <div class="detail-form" id="detail-form">
+    <div class="card">
+      <div class="card-title">รายละเอียดเพิ่มเติม</div>
+      <div class="form-row"><label class="form-label">วันที่และเวลา</label><input type="datetime-local" id="log-dt" /></div>
+      <div class="form-row">
+        <label class="form-label">ระดับความมุ่งมั่น</label>
+        <div class="int-group" id="d-int-group">
+          <button class="int-btn sel" onclick="setDetailInt('low',this)">ปานกลาง</button>
+          <button class="int-btn" onclick="setDetailInt('medium',this)">ค่อนข้างมาก</button>
+          <button class="int-btn" onclick="setDetailInt('high',this)">มากมาก</button>
+        </div>
+      </div>
+      <div class="form-row"><label class="form-label">ระยะเวลา (นาที)</label><input type="number" id="log-dur" placeholder="เช่น 15" min="1" max="120" /></div>
+      <div class="form-row">
+        <label class="form-label">ความรู้สึกหลังทำ</label>
+        <select id="log-feel">
+          <option value="">-- เลือก --</option>
+          <option value="relax">ผ่อนคลาย</option>
+          <option value="tired">เหนื่อย</option>
+          <option value="normal">ปกติ</option>
+          <option value="guilty">รู้สึกผิด</option>
+          <option value="happy">พอใจ</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">โน้ต</label><textarea id="log-note" placeholder="บันทึกอะไรก็ได้..."></textarea></div>
+      <button class="save-btn" onclick="saveDetail()"><i class="ti ti-device-floppy"></i> บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div id="page-history" class="page content">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-list"></i> ประวัติทั้งหมด</div>
+    <div id="history-list"><p class="empty">ยังไม่มีข้อมูล</p></div>
+  </div>
+</div>
+
+<!-- STATS PAGE -->
+<div id="page-stats" class="page content">
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">วันนี้</div><div class="stat-val" id="s-today">0</div><div class="stat-sub">ครั้ง</div></div>
+    <div class="stat"><div class="stat-label">สัปดาห์นี้</div><div class="stat-val" id="s-week">0</div><div class="stat-sub">ครั้ง</div></div>
+    <div class="stat"><div class="stat-label">เดือนนี้</div><div class="stat-val" id="s-month">0</div><div class="stat-sub">ครั้ง</div></div>
+    <div class="stat"><div class="stat-label">เวลานิยม</div><div class="stat-val" id="s-peak" style="font-size:18px;">-</div><div class="stat-sub">ช่วงเวลา</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Activity 28 วันย้อนหลัง</div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px;"><span>4 สัปดาห์ที่แล้ว</span><span>วันนี้</span></div>
+    <div class="heatmap" id="heatmap"></div>
+    <div class="hm-legend">
+      <span>น้อย</span>
+      <span class="hm-sq" style="background:var(--bg2);border:0.5px solid var(--border2);"></span>
+      <span class="hm-sq" style="background:#b5d4f4;"></span>
+      <span class="hm-sq" style="background:#378add;"></span>
+      <span class="hm-sq" style="background:#042c53;"></span>
+      <span>มาก</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">วิเคราะห์รูปแบบ</div>
+    <div id="insight-area"><p class="empty" style="padding:8px 0;">บันทึกข้อมูลก่อนเพื่อดูการวิเคราะห์</p></div>
+  </div>
+</div>
+
+<!-- HEALTH PAGE -->
+<div id="page-health" class="page content">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-info-circle"></i> ข้อมูลสุขภาพ</div>
+    <div class="health-item">
+      <div class="health-icon" style="color:#185fa5;"><i class="ti ti-calendar-check"></i></div>
+      <div><div class="health-title">ความถี่ที่เหมาะสม</div><div class="health-desc">ไม่มีมาตรฐานตายตัว ส่วนใหญ่ 1-7 ครั้ง/สัปดาห์ถือว่าปกติ</div><span class="tag" style="background:var(--success-bg);color:var(--success-text);">ปกติ: 1-7×/สัปดาห์</span></div>
+    </div>
+    <div class="health-item">
+      <div class="health-icon" style="color:#ba7517;"><i class="ti ti-clock"></i></div>
+      <div><div class="health-title">เวลาที่ส่งผล</div><div class="health-desc"><strong>เช้า:</strong> testosterone สูง อารมณ์ดี<br><strong>ก่อนนอน:</strong> ผ่อนคลาย นอนหลับดี<br><strong>กลางวัน:</strong> อาจง่วงช่วงบ่าย</div><span class="tag" style="background:var(--success-bg);color:var(--success-text);">ดี: ก่อนนอน</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-text);">ระวัง: ก่อนออกกำลังกาย</span></div>
+    </div>
+    <div class="health-item">
+      <div class="health-icon" style="color:#a32d2d;"><i class="ti ti-alert-triangle"></i></div>
+      <div><div class="health-title">สัญญาณควรระวัง</div><div class="health-desc">บ่อยจนรบกวนชีวิตประจำวัน เจ็บปวด หรือรู้สึกผิดมาก ควรปรึกษาแพทย์</div><span class="tag" style="background:var(--danger-bg);color:var(--danger-text);">บ่อยกว่า 3× ต่อวัน</span></div>
+    </div>
+    <div class="health-item">
+      <div class="health-icon" style="color:#0f6e56;"><i class="ti ti-mood-happy"></i></div>
+      <div><div class="health-title">ประโยชน์</div><div class="health-desc">ลดความเครียด ปวดหัว ช่วยนอนหลับ รู้จักตัวเองมากขึ้น</div><span class="tag" style="background:var(--success-bg);color:var(--success-text);">ผ่อนคลาย</span><span class="tag" style="background:var(--success-bg);color:var(--success-text);">ลด stress</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-log" onclick="showPage('log',this)"><i class="ti ti-plus"></i>บันทึก</button>
+  <button class="nav-btn" id="nav-history" onclick="showPage('history',this)"><i class="ti ti-history"></i>ประวัติ</button>
+  <button class="nav-btn" id="nav-stats" onclick="showPage('stats',this)"><i class="ti ti-chart-bar"></i>วิเคราะห์</button>
+  <button class="nav-btn" id="nav-health" onclick="showPage('health',this)"><i class="ti ti-heart"></i>สุขภาพ</button>
+</div>
+
+<script>
+let logs = JSON.parse(localStorage.getItem('mytracker_v1') || '[]');
+let quickInt = 'low';
+let detailInt = 'low';
+
+function save() { localStorage.setItem('mytracker_v1', JSON.stringify(logs)); }
+
+function pad(n) { return String(n).padStart(2,'0'); }
+function nowDt() {
+  const n = new Date();
+  return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}T${pad(n.getHours())}:${pad(n.getMinutes())}`;
+}
+function fmtTime(dt) { return new Date(dt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}); }
+function fmtDate(dt) {
+  const d = new Date(dt);
+  const days = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  return days[d.getDay()] + ' ' + d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+}
+function iLabel(i) {
+  if(i==='low') return ['ปานกลาง','b-low'];
+  if(i==='medium') return ['มาก','b-medium'];
+  return ['มากมาก','b-high'];
+}
+function feelLabel(f) { return {relax:'ผ่อนคลาย',tired:'เหนื่อย',normal:'ปกติ',guilty:'รู้สึกผิด',happy:'พอใจ'}[f]||''; }
+function timeLabel(h) {
+  if(h>=5&&h<12) return 'เช้า';
+  if(h>=12&&h<18) return 'บ่าย';
+  if(h>=18&&h<22) return 'เย็น/ค่ำ';
+  return 'กลางคืน';
+}
+
+function logNow() {
+  logs.unshift({ id: Date.now(), dt: nowDt(), intensity: quickInt, dur:0, feel:'', note:'' });
+  save(); renderToday();
+  const b = document.getElementById('now-btn');
+  b.classList.add('flash-ok');
+  setTimeout(()=>b.classList.remove('flash-ok'), 500);
+}
+
+function logQuickTime() {
+  const t = document.getElementById('q-time').value;
+  if (!t) { alert('กรุณาเลือกเวลา'); return; }
+  const n = new Date();
+  const dt = `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}T${t}`;
+  logs.unshift({ id: Date.now(), dt, intensity: quickInt, dur:0, feel:'', note:'' });
+  save(); renderToday();
+  document.getElementById('q-time').value = '';
+}
+
+function setQInt(val, btn) {
+  quickInt = val;
+  document.getElementById('q-int-group').querySelectorAll('.int-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function setDetailInt(val, btn) {
+  detailInt = val;
+  document.getElementById('d-int-group').querySelectorAll('.int-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function toggleDetail() {
+  const f = document.getElementById('detail-form');
+  f.classList.toggle('open');
+  if (f.classList.contains('open')) document.getElementById('log-dt').value = nowDt();
+}
+function saveDetail() {
+  const dt = document.getElementById('log-dt').value;
+  if (!dt) { alert('กรุณาเลือกวันที่และเวลา'); return; }
+  logs.unshift({ id:Date.now(), dt, intensity:detailInt,
+    dur: parseInt(document.getElementById('log-dur').value)||0,
+    feel: document.getElementById('log-feel').value,
+    note: document.getElementById('log-note').value });
+  save();
+  ['log-dur','log-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('log-feel').value='';
+  document.getElementById('detail-form').classList.remove('open');
+  renderToday();
+}
+
+function delLog(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  logs = logs.filter(l=>l.id!==id); save();
+  renderToday(); renderHistory();
+}
+
+function renderToday() {
+  const todayStr = new Date().toDateString();
+  const todays = logs.filter(l=>new Date(l.dt).toDateString()===todayStr);
+  document.getElementById('today-count').textContent = todays.length;
+  const el = document.getElementById('today-list');
+  if (!todays.length) { el.innerHTML = '<p class="empty">ยังไม่มีรายการ<br>กดปุ่มด้านบนได้เลย</p>'; return; }
+  el.innerHTML = todays.map((l,i)=>{
+    const [il,ic] = iLabel(l.intensity);
+    const extras = [l.dur?`${l.dur} นาที`:'', feelLabel(l.feel)].filter(Boolean).join(' · ');
+    return `<div class="today-item">
+      <div style="flex:1">
+        <span class="item-time">${fmtTime(l.dt)}</span>
+        <span class="item-num">ครั้งที่ ${todays.length-i}</span>
+        <span class="badge ${ic}">${il}</span>
+        ${extras?`<div class="item-note">${extras}</div>`:''}
+        ${l.note?`<div class="item-note">${l.note}</div>`:''}
+      </div>
+      <button class="del-btn" onclick="delLog(${l.id})" aria-label="ลบ"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!logs.length) { el.innerHTML = '<p class="empty">ยังไม่มีข้อมูล</p>'; return; }
+  const groups = {};
+  logs.forEach(l=>{ const k=new Date(l.dt).toDateString(); if(!groups[k])groups[k]=[]; groups[k].push(l); });
+  el.innerHTML = Object.entries(groups).map(([k,items])=>{
+    const rows = items.map((l,i)=>{
+      const [il,ic] = iLabel(l.intensity);
+      return `<div class="today-item">
+        <div style="flex:1">
+          <span class="item-time">${fmtTime(l.dt)}</span>
+          <span class="badge ${ic}">${il}</span>
+          ${l.dur?`<div class="item-note">${l.dur} นาที${l.feel?' · '+feelLabel(l.feel):''}</div>`:''}
+          ${l.note?`<div class="item-note">${l.note}</div>`:''}
+        </div>
+        <button class="del-btn" onclick="delLog(${l.id})" aria-label="ลบ"><i class="ti ti-trash"></i></button>
+      </div>`;
+    }).join('');
+    return `<div><div class="day-header">${fmtDate(items[0].dt)} &nbsp; ${items.length} ครั้ง</div>${rows}</div>`;
+  }).join('');
+}
+
+function renderStats() {
+  const now = new Date();
+  const todayStr = now.toDateString();
+  const weekAgo = new Date(now-7*864e5), monthAgo = new Date(now-30*864e5);
+  const todays = logs.filter(l=>new Date(l.dt).toDateString()===todayStr);
+  const weeks = logs.filter(l=>new Date(l.dt)>=weekAgo);
+  const months = logs.filter(l=>new Date(l.dt)>=monthAgo);
+  document.getElementById('s-today').textContent = todays.length;
+  document.getElementById('s-week').textContent = weeks.length;
+  document.getElementById('s-month').textContent = months.length;
+  if (logs.length) {
+    const hc={};
+    logs.forEach(l=>{ const t=timeLabel(new Date(l.dt).getHours()); hc[t]=(hc[t]||0)+1; });
+    document.getElementById('s-peak').textContent = Object.entries(hc).sort((a,b)=>b[1]-a[1])[0][0];
+  }
+  const hm = document.getElementById('heatmap');
+  const cells = [];
+  for(let i=27;i>=0;i--) {
+    const d = new Date(now-i*864e5);
+    const cnt = logs.filter(l=>new Date(l.dt).toDateString()===d.toDateString()).length;
+    const cls = cnt===0?'':cnt===1?'h1':cnt===2?'h2':cnt===3?'h3':'h4';
+    cells.push(`<div class="hm-cell ${cls}" title="${d.toLocaleDateString('th-TH')} (${cnt} ครั้ง)"></div>`);
+  }
+  hm.innerHTML = cells.join('');
+  const ia = document.getElementById('insight-area');
+  if (!logs.length) { ia.innerHTML = '<p class="empty" style="padding:8px 0;">บันทึกข้อมูลก่อนเพื่อดูการวิเคราะห์</p>'; return; }
+  const avg = months.length?(months.length/30).toFixed(1):0;
+  const hc2={};
+  logs.slice(0,50).forEach(l=>{ const t=timeLabel(new Date(l.dt).getHours()); hc2[t]=(hc2[t]||0)+1; });
+  const peak = Object.entries(hc2).sort((a,b)=>b[1]-a[1])[0];
+  let warn='';
+  if(todays.length>=3) warn+=`<br><span class="warn-text-d">⚠ วันนี้ทำ ${todays.length} ครั้ง — ควรพักให้เพียงพอ</span>`;
+  if(weeks.length>=14) warn+=`<br><span class="warn-text-w">⚠ สัปดาห์นี้บ่อยมาก อาจส่งผลต่อความเหนื่อยล้า</span>`;
+  ia.innerHTML = `<div class="insight">เฉลี่ย <strong>${avg} ครั้ง/วัน</strong> ใน 30 วันที่ผ่านมา<br>ช่วงเวลานิยม: <strong>${peak?peak[0]:'-'}</strong><br>รวมเดือนนี้: <strong>${months.length} ครั้ง</strong>${warn}</div>`;
+}
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  window.scrollTo(0,0);
+  if(name==='history') renderHistory();
+  if(name==='stats') renderStats();
+}
+
+renderToday();
+</script>
+</body>
+</html>
